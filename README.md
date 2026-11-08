@@ -1,116 +1,105 @@
-# EMPATHO — 유방암 임상 의사결정 지원 시스템(CDSS)
+# EMPATHO — 유방암 검진 경로 CDSS
 
-유방 영상(맘모그래피 · 초음파 · MRI)과 병리 슬라이드를 AI 가 판독하여 의사의 판독을 돕는 병원용 웹 서비스입니다.
-AI 산출은 모두 제안 · 후보이며, 최종 판정은 의사가 합니다.
+> 팀 프로젝트의 공개 사본입니다. 원본은 [medical-ai-group-3/empatho](https://github.com/medical-ai-group-3/empatho)입니다.
+> 커밋 기록과 작성자는 원본과 같습니다. 개인 개발 도구 설정 파일만 기록에서 지웠습니다.
 
-![Python](https://img.shields.io/badge/Python-3776AB?logo=python&logoColor=white)
-![Go](https://img.shields.io/badge/Go-00ADD8?logo=go&logoColor=white)
-![JavaScript](https://img.shields.io/badge/JavaScript-F7DF1E?logo=javascript&logoColor=black)
-![Django](https://img.shields.io/badge/Django-092E20?logo=django&logoColor=white)
-![DRF](https://img.shields.io/badge/DRF-A30000?logo=django&logoColor=white)
-![FastAPI](https://img.shields.io/badge/FastAPI-009688?logo=fastapi&logoColor=white)
-![Celery](https://img.shields.io/badge/Celery-37814A?logo=celery&logoColor=white)
-![Redis](https://img.shields.io/badge/Redis-DC382D?logo=redis&logoColor=white)
-![PostgreSQL](https://img.shields.io/badge/PostgreSQL-4169E1?logo=postgresql&logoColor=white)
-![React](https://img.shields.io/badge/React-61DAFB?logo=react&logoColor=black)
-![Vite](https://img.shields.io/badge/Vite-646CFF?logo=vite&logoColor=white)
-![Three.js](https://img.shields.io/badge/Three.js-000000?logo=threedotjs&logoColor=white)
-![Cornerstone.js](https://img.shields.io/badge/Cornerstone.js-1F6FEB)
-![Capacitor](https://img.shields.io/badge/Capacitor-119EFF?logo=capacitor&logoColor=white)
-![PyTorch](https://img.shields.io/badge/PyTorch-EE4C2C?logo=pytorch&logoColor=white)
-![Ollama](https://img.shields.io/badge/Ollama-000000?logo=ollama&logoColor=white)
-![Orthanc](https://img.shields.io/badge/Orthanc_(DICOM)-2E7D32)
-![Garage S3](https://img.shields.io/badge/Garage_(S3)-FF9329)
-![nginx](https://img.shields.io/badge/nginx-009639?logo=nginx&logoColor=white)
-![Docker](https://img.shields.io/badge/Docker_Compose-2496ED?logo=docker&logoColor=white)
-![GitHub Actions](https://img.shields.io/badge/GitHub_Actions-2088FF?logo=githubactions&logoColor=white)
-![Firebase](https://img.shields.io/badge/FCM-DD2C00?logo=firebase&logoColor=white)
+유방 영상(맘모그래피, 초음파, MRI)과 병리 슬라이드를 AI가 판독해 의사의 판독을 돕는 병원용 웹 서비스입니다.
+AI 결과는 모두 제안입니다. 최종 판정은 의사가 합니다.
 
----
-
-## 주요 기능
-
-| 영역 | 내용 |
+| 항목 | 내용 |
 |---|---|
-| 영상 판독 보조 | 초음파 병변 분할 · 등급, 맘모그래피 병변 탐지 · BI-RADS 제안, MRI 병변 · 유방 밀도 분할과 3D 메시, 병리 sTIL 계측 |
-| 소견문 초안 | 판독 수치를 코드가 문장으로 만들고 LLM 은 문장만 엮음. 수치가 바뀌면 코드가 만든 문장으로 대체 |
-| 병원 업무 흐름 | 접수 · 처방 · 영상 업로드 · 판독 · 진료 결정 · 예약 · 수술 작업 목록 |
-| 의료영상 뷰어 | DICOM 판독 뷰어, MPR, NIfTI 단면, 해부 · 종양 3D 뷰어 |
-| 환자 앱 | 안내 챗봇(프롬프트 주입 방어), 예약 · 결과 알림(SSE · FCM · SMS), 본인인증 가입 |
-| 배포 | `main` push 시 GitHub Actions 로 앱 서버 · 화면 · 추론 서버 자동 배포, 추론 서버는 실패 시 이전 커밋으로 롤백 |
+| 기간 | 2026.08 ~ 2026.10 |
+| 인원 | 5명 (팀장: Yun-sooyong) |
+| 결과 | 미래융합교육원 바이오메디컬 AI 과정 최종 프로젝트 우수상 |
+| 내 역할 | 통합 추론 서버, 판독 파이프라인, 인프라, 자동 배포 |
 
-## 구성
+## 핵심 가치
+
+1. **GPU 1대로 4개 영상 판독:** MedSAM3 백본 1벌을 메모리에 두고, 영상 종류마다 LoRA 어댑터만 바꿉니다.
+2. **소견문 수치를 LLM이 바꾸지 못함:** 판독 수치는 코드가 문장으로 만듭니다. LLM은 문장을 잇기만 합니다. 수치가 바뀌면 코드가 만든 문장으로 되돌립니다.
+3. **환자 정보 분리:** 추론 서버에는 환자 식별자를 보내지 않습니다. 추론 서버는 외부에 포트를 열지 않고 SSH 터널로만 연결됩니다.
+
+## 내가 만든 것과 결과
+
+| 한 일 | 결과 |
+|---|---|
+| 영상 종류별 모델을 백본 1벌 + LoRA 교체 구조로 합침 | GPU 메모리 13,602MiB → 4,148MiB (약 70% 감소) |
+| LoRA 어댑터 교체 | 교체 시간 0.06~0.28초, 교체 전후 결과가 비트 단위로 같음 |
+| 소견문 서버 (Ollama, `gemma3:12b-it-q4_K_M`) | 같은 입력 50회 생성에서 50회 같은 결과, 판독 수치 150개 보존 |
+| Celery + Redis 판독 파이프라인, 알림과 본인인증 백엔드 | 판독 요청을 작업 큐로 처리 |
+| GitHub Actions 자동 배포 | 바뀐 폴더만 배포, 추론 서버는 실패 시 이전 커밋으로 롤백 |
+
+## 구조
 
 ![구성도](docs/architecture.svg)
 
-- **앱 서버** — Django(API · DB 쓰기), Celery worker(판독 요청 · 알림), Go 서비스(파일 게이트웨이 · 실시간 알림 · 소견문 중계), PostgreSQL · Garage(S3) · Orthanc(DICOM), nginx.
-- **추론 서버(GPU)** — FastAPI 판독 서버와 리포트 서버, Ollama. 외부 인바운드를 열지 않고 앱 서버의 SSH 터널로만 연결됩니다.
-- **모델** — MedSAM3 백본 한 벌을 메모리에 올리고 모달리티별 LoRA 어댑터만 교체합니다. 병리는 Virchow2 기반 조직 분할을 사용합니다.
+| 서버 | 구성 |
+|---|---|
+| 앱 서버 | Django(API, DB 쓰기), Celery worker, Go 서비스(파일 게이트웨이, 실시간 알림, 소견문 중계), nginx |
+| 저장소 | PostgreSQL 17, Garage v2.3.0 (S3 호환), Orthanc 26.8.1 (DICOM). 모두 `127.0.0.1`에만 바인딩 |
+| 추론 서버 (GPU) | FastAPI 판독 서버(`:8001`), FastAPI 소견문 서버, Ollama. supervisor로 실행 |
+| 화면 | React + Vite 병원 웹, Capacitor 안드로이드 환자 앱 |
 
-### 설계 원칙
+설계 원칙은 4가지입니다.
 
-1. DB 는 Django 코드만 씁니다. Go 서비스는 콜백으로 Django 에 기록을 요청합니다.
-2. 파일 바이트는 Go 게이트웨이만 다룹니다. Django 가 서명한 티켓이 있어야 접근할 수 있습니다.
-3. 판독 · 리포트 서버는 실패를 HTTP 200 `abstained` 응답으로 돌려줍니다.
+1. DB에는 Django 코드만 씁니다. Go 서비스는 콜백으로 Django에 기록을 요청합니다.
+2. 파일 바이트는 Go 게이트웨이만 다룹니다. Django가 서명한 티켓이 있어야 접근합니다.
+3. 판독 서버와 소견문 서버는 실패를 HTTP 200 `abstained` 응답으로 돌려줍니다.
 4. 환자 식별자는 추론 서버로 보내지 않습니다.
 
-## 폴더 구조
+## 기술 스펙
 
-| 폴더 | 원래 레포 | 내용 |
-|---|---|---|
-| `app/` | empatho-app | Django · Celery · Go 서비스 · nginx · Docker Compose |
-| `view/` | empatho-view | 병원 웹 · 환자 앱(React, Capacitor 안드로이드) |
-| `inference/` | empatho-inference | 판독 서버 · 리포트 서버(FastAPI) |
-| `pathology-eval/` | empatho-pathology-eval | 병리 모델 학습 · 평가 |
-| `workstation/` | (git 기록 없음) | GPU 워크스테이션에만 있던 모델 학습 · 후처리 코드, MedSAM3 수정본 |
-
-네 레포는 커밋 기록과 작성자를 유지한 채 각 폴더로 합쳤습니다. 원래 레포는 그대로 남아 있습니다.
-모델 가중치와 학습 데이터는 포함하지 않습니다.
-
-## 팀 구성과 담당
-
-| 팀원 | 모델 | 서버 · 인프라 | 화면 |
-|---|---|---|---|
-| **Yun-sooyong** | 병리 sTIL 추론 · 서빙 | 판독 · 소견문 서버, Celery · Redis 판독 파이프라인, 알림 · 본인인증 백엔드, 자동 배포 | 환자 앱, 안드로이드 빌드 |
-| **spgummo0905** | 맘모그래피(MedSAM3 LoRA 탐지, 후처리, BI-RADS 세분류) | Go 게이트웨이 · 알림 · 소견문 중계 · 챗봇, nginx, 병원 정보 · DUR · 수술 작업 API | 영상의학과 · 병리과 · 유방외과 진료 · 처방 · 예약 · 업로드 화면 |
-| **ilunee** | 초음파(MedSAM3 LoRA 병변 분할) | DB 스키마 · Django 모델, 권한 · 티켓 · 내부 콜백 API, 관리자 기능 | 화면 목업, 로그인 · 접수 · 간호과 화면, API 명세 |
-| **da-hee-da** | 병리(Virchow2 기반 조직 분할, BCSS 전처리 · 염색 정규화) | 영상의학과 · 병리과 API, 파일 저장 객체 · 메모 API, 기능 테스트 | 가입 화면, 디자인 토큰 · 테마 |
-| **jungeun** | MRI(MedSAM3 LoRA 병변 · 밀도 분할, 3D 메시 후처리) | — | 3D · MPR · NIfTI 뷰어, MRI 판독 그리드, 유방외과 판독 화면 |
-
-### 팀원별 기술 스택
-
-| 팀원 | 기술 |
+| 영역 | 기술 |
 |---|---|
-| Yun-sooyong | FastAPI, PyTorch, Ollama, Celery, Redis, Docker Compose, GitHub Actions, Supervisor, FCM |
-| spgummo0905 | Go, Django REST Framework, React, Cornerstone.js, nginx, PyTorch |
-| ilunee | Django, Django REST Framework, PostgreSQL, PyJWT, PyTorch, React |
-| da-hee-da | Django, Django REST Framework, PyTorch, Virchow2, React |
-| jungeun | PyTorch, React, Three.js, Cornerstone.js, nifti-reader-js, Vite |
+| 백엔드 | Python 3.12, Django, DRF, Celery, Redis, Go |
+| 추론 | FastAPI, PyTorch, Ollama |
+| 화면 | React, Vite, Three.js, Cornerstone.js, Capacitor |
+| 인프라 | Docker Compose, nginx, GitHub Actions (self-hosted 러너), supervisor, FCM |
 
-## 배포
+## AI 모델
 
-`main` push 가 운영 배포입니다. `.github/workflows/deploy.yml` 이 바뀐 폴더를 보고 파트별 배포를 부릅니다.
+| 대상 | 모델 | 하는 일 |
+|---|---|---|
+| 초음파, 맘모그래피, MRI | MedSAM3 + 영상 종류별 LoRA | 병변 분할과 탐지, 유방 밀도 분할 |
+| 병리 | Virchow2 기반 조직 분할 | sTIL 계측 |
+| 소견문 | `gemma3:12b-it-q4_K_M` (Ollama) | 코드가 만든 문장을 이어 소견문 초안 작성 |
 
-| 워크플로 | 대상 | 러너 라벨 | 내용 |
-|---|---|---|---|
-| `deploy.yml` | — | GitHub 호스트 | 변경 폴더 판별 후 아래 셋을 호출. 수동 실행 시 전체 배포 |
-| `deploy-app.yml` | `app/` | `self-hosted, empatho-app` | Docker Compose 빌드 · 기동, 마이그레이션, nginx 검사, 경로 확인 |
-| `deploy-view.yml` | `view/` | `self-hosted, empatho-app` | 화면 빌드 후 nginx 정적 폴더로 복사(app 배포 뒤) |
-| `deploy-inference.yml` | `inference/` | `self-hosted, empatho-gpu` | git pull, supervisor 재시작, 상태 확인 · 점검, 실패 시 이전 커밋으로 롤백 |
+- 모델 가중치와 학습 데이터는 이 저장소에 없습니다.
 
-처음 한 번 준비할 것:
+## API
 
-1. 앱 서버와 GPU 서버에 이 레포용 self-hosted 러너를 등록하고 위 라벨을 붙입니다.
-2. 레포 변수(Settings → Variables)를 서버 경로에 맞춥니다. 없으면 기본값을 씁니다.
-   - `CONF_DIR` 앱 서버 설정 폴더 · `WEB_DIST` 화면 폴더 · `INFERENCE_REPO` GPU 서버의 이 레포 clone 위치
-3. GPU 서버에 이 레포를 clone 하고, 가중치 링크 `models/` 와 `replay/` 를 `inference/` 안에 둡니다.
-4. 앱 서버 설정 파일(`conf/*.env` 등)은 git 에 없으므로 `CONF_DIR` 에 따로 둡니다.
+| 서버 | 경로 | 내용 |
+|---|---|---|
+| 판독 서버 | `POST /analyze/{socket_id}` | 영상 1건 판독 |
+| 소견문 서버 | `POST /report/{socket_id}` | 판독 수치로 소견문 초안 생성 |
+| 두 서버 | `GET /healthz` | 상태 확인 |
+| 앱 서버 | `/api/v1/...` | 병원 업무 API (Django) |
 
-## 각 폴더 실행
+## 폴더
 
-각 폴더의 README 를 참고합니다.
+| 폴더 | 내용 |
+|---|---|
+| `app/` | Django, Celery, Go 서비스, nginx, Docker Compose |
+| `view/` | 병원 웹, 환자 앱 |
+| `inference/` | 판독 서버, 소견문 서버 |
+| `pathology-eval/` | 병리 모델 학습과 평가 |
+| `workstation/` | GPU 워크스테이션의 학습과 후처리 코드 |
 
-- `app/README.md` — 앱 서버 구성 · Docker Compose
-- `view/README.md` — 화면 개발 서버 · 안드로이드 빌드
-- `inference/README.md` — 판독 · 리포트 서버
-- `pathology-eval/README.md` — 병리 모델 학습 · 평가
+## 실행
+
+1. 앱 서버 저장소를 실행합니다: `cd app && docker compose -f compose.server.yml up -d`
+2. 화면을 목업으로 실행합니다: `cd view && npm install && npm run dev:mock`
+3. 추론 서버는 GPU와 모델 가중치가 필요합니다. `inference/README.md`를 봅니다.
+
+- 설정 파일은 `app/conf/*.env.example`을 복사해서 만듭니다. 실제 값은 Git에 넣지 않습니다.
+- 폴더마다 자세한 실행 방법은 각 폴더의 `README.md`에 있습니다.
+
+## 팀
+
+| 팀원 | 담당 |
+|---|---|
+| **Yun-sooyong** (팀장) | 병리 sTIL 추론과 서빙, 판독·소견문 서버, 판독 파이프라인, 알림·본인인증 백엔드, 자동 배포, 환자 앱 |
+| spgummo0905 | 맘모그래피 모델, Go 게이트웨이와 중계, nginx, 병원 업무 API와 진료 화면 |
+| ilunee | 초음파 모델, DB 스키마, 권한·티켓 API, 접수·간호 화면 |
+| da-hee-da | 병리 조직 분할 모델, 영상·병리 API, 가입 화면, 디자인 토큰 |
+| jungeun | MRI 모델, 3D·MPR·NIfTI 뷰어, MRI 판독 화면 |
